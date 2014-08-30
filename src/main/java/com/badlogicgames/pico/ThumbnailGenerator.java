@@ -35,8 +35,10 @@ public class ThumbnailGenerator {
 				if(!(suffix.equals("png") || suffix.equals("jpg") || suffix.equals("bmp"))) continue;
 				System.out.println("generating thumbnail for " + file.getAbsolutePath());
 				File output = new File(thumbDir, file.getName());
-				BufferedImage img = ImageIO.read(file);
-				ImageIO.write(Scalr.resize(img, width, height), "png", output);
+				if(!output.exists()) {
+					BufferedImage img = ImageIO.read(file);
+					ImageIO.write(Scalr.resize(img, width, height), "png", output);
+				}
 			}
 		}
 	}
