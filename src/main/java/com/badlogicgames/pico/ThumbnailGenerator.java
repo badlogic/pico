@@ -36,8 +36,12 @@ public class ThumbnailGenerator {
 				System.out.println("generating thumbnail for " + file.getAbsolutePath());
 				File output = new File(thumbDir, file.getName());
 				if(!output.exists()) {
-					BufferedImage img = ImageIO.read(file);
-					ImageIO.write(Scalr.resize(img, width, height), "png", output);
+					try {
+						BufferedImage img = ImageIO.read(file);
+						ImageIO.write(Scalr.resize(img, width, height), "png", output);
+					} catch(IOException e) {
+						System.out.println("couldn't index " + file.getAbsolutePath() + ": " + e.getMessage());
+					}
 				}
 			}
 		}
