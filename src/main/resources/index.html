@@ -1,0 +1,221 @@
+<html ng-app="Pico">
+<head>
+<script src="angular.js"></script>
+<script src="jquery-1.11.1.min.js"></script>
+<style type="text/css">
+* {
+	margin: 0;
+	padding: 0;
+}
+body {
+	font-family: 'Helvetica Neue', arial, sans-serif;
+	font-weight: 200;
+  background: #111;
+}
+
+.centered {
+	text-align: center;
+}
+.wrapper {
+	width: 100%;
+	padding: 10px 0;
+}
+.container {
+	width: 1200px;
+	margin: 0 auto;
+}
+
+ul.rig {
+	list-style: none;
+	font-size: 0px;
+	margin-left: -2.5%; /* should match li left margin */
+}
+ul.rig li {
+	display: inline-block;
+	padding: 2px;
+	margin: 0 0 2.5% 2.5%;
+	background: #fff;
+	border: 1px solid #ddd;
+	font-size: 16px;
+	font-size: 1rem;
+	vertical-align: top;
+	box-shadow: 0 0 5px #ddd;
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+  cursor: pointer;
+}
+ul.rig li img {
+	max-width: 100%;
+	height: auto;
+}
+
+.highlight {
+  background: #0f0;
+}
+
+@media (max-width: 1199px) {
+	.container {
+		width: auto;
+		padding: 0 10px;
+	}
+}
+
+.fullscreen {
+  height:100%;
+  width:100%;
+  position:fixed;
+  left:0;
+  top:0;
+  z-index:1 !important;
+  background-color:black;
+}
+
+.viewer {
+  max-width: 100%;
+  max-height: 100%;
+  bottom: 0;
+  left: 0;
+  margin: auto;
+  overflow: auto;
+  position: fixed;
+  right: 0;
+  top: 0;
+}
+
+.leftarrow {
+  position: fixed;
+  left: 0;
+  font-size: 72px;
+  color: #ddd;
+  cursor: pointer;
+  width: 10%;
+  height: 100%;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.rightarrow {
+  position: fixed;
+  left: 90%;
+  font-size: 72px;
+  color: #ddd;
+  cursor: pointer;
+  width: 10%;
+  height: 72%;
+  text-align: center;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+</style>
+
+<script>
+var app = angular.module("Pico", []);
+app.controller("PicoController", ["$scope", "$http", "$window", "$document", function($scope, $http, $window, $document) {
+  $scope.images=[];
+  $scope.selected = null;
+  $scope.lastIndex = null;
+
+  $http.get("metadata.json").success(function(data) {
+    $scope.images = data;
+  });
+  $document.bind('keyup', function(event) {
+    $scope.$apply(function() {
+      if(event.keyIdentifier === "Right") $scope.next();
+      if(event.keyIdentifier === "Left") $scope.prev();
+      if(event.keyCode === 27) $scope.selected = null;
+    })
+  });
+
+  $scope.select = function(index) {
+    var old = $scope.selected;
+    $scope.selected = index;
+    $scope.lastIndex = index;
+    highlight(old, $scope.lastIndex);
+    enterFullscreen();
+  }
+
+  $scope.next = function() {
+    if($scope.selected) {
+      var old = $scope.selected;
+      $scope.selected++;
+      if($scope.selected > $scope.images.length - 1) {
+        $scope.selected = 0;
+      }
+      $scope.lastIndex = $scope.selected;
+      highlight(old, $scope.lastIndex);
+    }
+  }
+
+  $scope.prev = function() {
+    if($scope.selected) {
+      var old = $scope.selected;
+      $scope.selected--;
+      if($scope.selected < 0) {
+        $scope.selected = $scope.images.length + 1;
+      }
+      $scope.lastIndex = $scope.selected;
+      highlight(old, $scope.lastIndex);
+    }
+  }
+
+  function highlight(old, curr) {
+    if(old) $($("img")[old]).css("background", "#fff");
+    if(curr) $($("img")[curr]).css("background", "#AEC6CF");
+  }
+
+  function enterFullscreen() {
+    if (!document.fullscreenElement &&    // alternative standard method
+        !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement ) {  // current working methods
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+      } else if (document.documentElement.msRequestFullscreen) {
+        document.documentElement.msRequestFullscreen();
+      } else if (document.documentElement.mozRequestFullScreen) {
+        document.documentElement.mozRequestFullScreen();
+      } else if (document.documentElement.webkitRequestFullscreen) {
+        document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+      }
+    }
+  }
+
+  function exitFullscreen() {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    }
+  }
+}]);
+</script>
+</head>
+<body ng-controller="PicoController">
+  <div class="wrapper">
+    <div class="container">
+      <ul class="rig">
+        <li ng-repeat="image in images track by $index">
+          <img ng-src="_thumbs/{{image}}" ng-click="select($index)"/>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="fullscreen" ng-show="selected">
+    <img class="viewer" ng-src="{{images[selected]}}" ng-click="selected=null"/>
+    <div class="leftarrow" ng-click="prev()">&lt;</div>
+    <div class="rightarrow" ng-click="next()"><span>&gt;</span></div>
+  </div>
+</body>
+</html>
