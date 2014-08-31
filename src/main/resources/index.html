@@ -121,8 +121,7 @@ ul.rig li img {
 var app = angular.module("Pico", []);
 app.controller("PicoController", ["$scope", "$http", "$window", "$document", function($scope, $http, $window, $document) {
   $scope.images=[];
-  $scope.selected = null;
-  $scope.lastIndex = null;
+  $scope.selected = null;  
 
   $http.get("metadata.json").success(function(data) {
     $scope.images = data;
@@ -135,41 +134,29 @@ app.controller("PicoController", ["$scope", "$http", "$window", "$document", fun
     })
   });
 
-  $scope.select = function(index) {
-    var old = $scope.selected;
-    $scope.selected = index;
-    $scope.lastIndex = index;
-    highlight(old, $scope.lastIndex);
+  $scope.select = function(index) {    
+    $scope.selected = index;       
     enterFullscreen();
   }
 
   $scope.next = function() {
-    if($scope.selected) {
+    if($scope.selected != null) {
       var old = $scope.selected;
       $scope.selected++;
       if($scope.selected > $scope.images.length - 1) {
         $scope.selected = 0;
-      }
-      $scope.lastIndex = $scope.selected;
-      highlight(old, $scope.lastIndex);
+      }           
     }
   }
 
   $scope.prev = function() {
-    if($scope.selected) {
+    if($scope.selected != null) {
       var old = $scope.selected;
       $scope.selected--;
       if($scope.selected < 0) {
         $scope.selected = $scope.images.length + 1;
-      }
-      $scope.lastIndex = $scope.selected;
-      highlight(old, $scope.lastIndex);
+      }           
     }
-  }
-
-  function highlight(old, curr) {
-    if(old) $($("img")[old]).css("background", "#fff");
-    if(curr) $($("img")[curr]).css("background", "#AEC6CF");
   }
 
   function enterFullscreen() {
@@ -212,7 +199,7 @@ app.controller("PicoController", ["$scope", "$http", "$window", "$document", fun
     </div>
   </div>
 
-  <div class="fullscreen" ng-show="selected">
+  <div class="fullscreen" ng-show="selected!=null">
     <img class="viewer" ng-src="{{images[selected]}}" ng-click="selected=null"/>
     <div class="leftarrow" ng-click="prev()">&lt;</div>
     <div class="rightarrow" ng-click="next()"><span>&gt;</span></div>
